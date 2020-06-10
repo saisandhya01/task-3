@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invitation</title>
+    <style>
+            body{
+                border: 20px solid lightseagreen;
+	            padding: 20px;
+	            max-width: 700px;
+	            width: 80%;
+	            margin: 20px auto;
+            }
+            .head,.body,.footer{
+                border: 2px solid black;
+                margin-bottom: 15px;
+            }
+
+    </style>
+</head>
+<body>
+<div class="head">
+<p><%- invitation.head %></p>
+</div>
+<div class="body">
+<%- invitation.body %>
+</div>
+<div class="footer">            
+ <p><%- invitation.footer %></p>
+</div>
+<a href="/users/home">Go to home</a>
+<script>
+    document.getElementById('body').contentEditable="false";
+    document.getElementsByClassName('imageUpload').contentEditable="false"
+</script>
+</body>
+</html>

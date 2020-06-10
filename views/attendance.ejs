@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Attendance manager</title>
+    </head>
+    <body>
+        <h1>Manage attendance of all your events</h1>
+        <% attendance.forEach(function(item,index){ %>
+            <p class="id"><%= item.id %></p>
+            <p>Name: <%= item.name %></p>
+            <p>Start Date: <%=item.startDate %></p>
+            <p>End Date: <%=item.endDate %></p>
+            <p class="present"><%= item.attendance %></p>
+            <p class="target"><%= item.acceptedBy %></p> 
+            <a href="/view/invite/" onclick="location.href=this.href+'<%= index+1 %>';return false;">View Invitation</a>
+            <div class="attendance">
+
+            </div>
+            <hr>
+        <% }) %>
+    </body>
+    <script>
+         let elements=document.getElementsByClassName('target')
+         let attendance=document.getElementsByClassName('attendance');
+         let present=document.getElementsByClassName('present');
+         let ids=document.getElementsByClassName('id');
+         function getEventById(l){
+             for(let i=0;i<elements.length;i++){
+                 if(l===i){
+                     return ids[i].innerHTML;
+                 }
+             }
+         }
+         for(let i=0;i<elements.length;i++){
+             let arr=elements[i].innerHTML.split(",");
+             let p=present[i].innerHTML.split(",");
+             for(let j=0;j<arr.length;j++){
+                let input=document.createElement('input');
+                input.setAttribute("type","checkbox");
+                input.id=`${i+1}-${j+1}`;
+                input.value=arr[j];
+                if(p.includes(arr[j])){
+                    input.checked=true;
+                }
+                attendance[i].appendChild(input)
+                let label=document.createElement('label');
+                label.setAttribute("for",`${i+1}-${j+1}`);
+                label.innerHTML=arr[j];
+                attendance[i].appendChild(label);
+                let br=document.createElement('br');
+                attendance[i].appendChild(br);
+             }
+             let save=document.createElement('button');
+             save.setAttribute("type","button");
+             save.setAttribute("onclick",`saveAttendees(${i+1})`);
+             save.id=`s-${i+1}`;
+             save.innerHTML='Save';
+             attendance[i].appendChild(save);
+         }
+         function saveAttendees(id){
+              let arr=elements[id-1].innerHTML.split(",");
+              let eventId=getEventById(id-1);
+              let presentArray=[];
+              for(let i=0;i<arr.length;i++){
+                  let input=document.getElementById(id+'-'+(i+1));
+                  if(input.checked){
+                      presentArray.push(input.value);
+                  }
+              }
+              finalSave(presentArray,eventId);
+         }
+         function finalSave(array,id){
+              let available={
+                  id: id,
+                  present: array
+              }
+              var xhr=new window.XMLHttpRequest();
+              xhr.open('POST','/attendance',true)
+              xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
+              xhr.send(JSON.stringify(available));
+         }
+
+    </script>
+</html>

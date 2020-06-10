@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Create invitation</title>
+        <style>
+            body{
+                border: 20px solid lightseagreen;
+	            padding: 20px;
+	            max-width: 700px;
+	            width: 80%;
+	            margin: 20px auto;
+            }
+            .head, .body,.footer{
+                margin-bottom: 15px;
+            }
+            .head,.footer{
+                border: 2px solid black;
+            }
+            #template{
+                margin-bottom: 15px;
+            }
+            #bold{
+                font-weight: bold;
+            }
+            em{
+                text-decoration: underline;
+            }
+            #special{
+                position: absolute;
+                left:0%;
+            }
+            #head, #footer{
+                padding: 15px;
+            }
+            #content{
+                border: 2px solid black;
+                padding: 15px;
+            }
+            image{
+                width:50vw;
+                height: 25vh;
+            }
+            .imageUpload {
+               border:2px dotted black;
+               margin: 50px auto;
+               width:50vw;
+               max-width:400px;
+               height:25vh;
+               position:relative;
+               text-align:center;
+               line-height:5vh;
+               outline:0 none;
+               overflow: hidden;
+               display:flex;
+               justify-content:center;
+              align-items:center;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="main">
+        <h1 id="special" style="display: none;"><%= id %></h1>
+        <h1 style="color: blue;">Create invitation</h1>
+        <label for="template">Choose your template : </label>
+        <select id="template">
+            <option value="Birthday">Birthday</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Funeral">Funeral</option>
+            <option value="Success Party">Success Party</option>
+        </select>
+        <div class="head">
+            <p contenteditable="true" id="head"> Head</p>
+        </div>
+        <div class="body">
+        <button type="button" id="bold" onclick="bold()">B</button>
+        <button type="button" onclick="italic()"><em>I</em></button>
+        <input type="color" id="color" name="color" onchange="colorChange()">
+        <button type="button" onclick="addImage()">Add Image</button>
+        <div id="content" contenteditable="true">
+           <p id="body" contenteditable="true">Body</p>
+        </div>
+        
+        </div>
+        <div class="footer">
+            <p contenteditable="true" id="footer"> Footer</p>
+        </div>
+        <button type="button" id="create" onclick="replace()">Create</button>
+        </div>
+        <script>
+        let body=document.getElementById('body');
+        let footer=document.getElementById('footer');
+        let head=document.getElementById('head');
+        let main=document.getElementsByClassName('main');
+        let content=document.getElementById('content');
+        let template=document.getElementById('template');
+        template.onchange=()=>{
+            if(template.value==='Birthday'){
+                head.innerHTML='You are invited!!'
+                body.innerHTML='Dear friends,<br> To have a guest like you in our party would be a wonderful delight,Please join us for a remarkable celebration of ____ birthday which will be taking place at ____ on _____. Highly awaiting for your presence at the party!'
+                footer.innerHTML='With Regards, <br> Your name'
+            }
+            else if(template.value==='Wedding'){    
+                head.innerHTML='You are invited!!';
+                body.innerHTML='We request the honour of your presence at the marriage of ___________ & ___________ on _________(Date) at ______(time).Reception is followed. <br> Venue : ______________.'
+                footer.innerHTML='With Regards, <br> Mr & Mrs X family'
+            }
+            else if(template.value==='Funeral'){
+                head.innerHTML='Funeral Invitation'
+                body.innerHTML='_________(Name) <br> 1928-1980 <br> Please join us in celebrating the life of __________ on _________(date) at ___________.Burial to follow at ___________'
+                footer.innerHTML='With Regards, <br> Name'
+            }
+            else if(template.value==='Success Party'){
+                head.innerHTML='You are invited!!'
+                body.innerHTML='I recently have been appointed to _______________(your success reason).To celebrate this, I have arranged a small party at my place on ________ at _______.I kindly request you to attend the party and have fun.Refreshments will be provided. Highly awaiting your presence at the party.'
+                footer.innerHTML='With regards, <br> Your Name'
+            }
+        }
+        function bold(){
+        body.innerHTML=body.innerHTML+'##<b contenteditable="true">'+' boldtext'+'</b>##';
+        }
+        function italic(){
+        body.innerHTML=body.innerHTML+'##<i contenteditable="true">'+' emphasized text'+'</i>##';
+        }
+        function colorChange(){
+             
+             body.innerHTML=body.innerHTML+'##<span contenteditable="true" class="color">'+' color text'+'</span>##';
+             let spanElements=document.getElementsByClassName('color');
+             let value=document.getElementById('color').value;
+             spanElements[spanElements.length-1].setAttribute("style","color:"+value+";");
+             
+        }
+        function replace(){
+            body.innerHTML = body.innerHTML.replace(/#/g,'');
+            console.log('is it working');
+            sendHtml()
+        }
+        function sendHtml(){
+               var invitation={
+   
+                    body: content.innerHTML,
+                    head: head.innerHTML,
+                    footer: footer.innerHTML
+                }
+                var xhr=new window.XMLHttpRequest();
+                let id=document.getElementById('special').innerHTML;
+                var URL='/event/invite/'+id;
+                xhr.open('POST',URL,true)
+                xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
+                xhr.send(JSON.stringify(invitation));
+                document.getElementById('create').innerHTML='Created';
+                let a =document.createElement('a');
+                a.href="/view/invite/"+id;
+                a.innerHTML='View Invitation';
+                main[0].appendChild(a);
+        }
+        function addImage(){
+        let div=document.createElement('div');
+        div.className='imageUpload';
+        div.setAttribute('contenteditable','true');
+        content.appendChild(div);
+        let contentTargetClass=document.getElementsByClassName('imageUpload');                  
+        let contentTarget=contentTargetClass[contentTargetClass.length-1];
+        contentTarget.onpaste = (e) => {                                                      
+        let cbPayload = [...(e.clipboardData || e.originalEvent.clipboardData).items];     
+        cbPayload = cbPayload.filter(i => /image/.test(i.type));                       
+   
+        if(!cbPayload.length || cbPayload.length === 0) return false;                      
+   
+        let reader = new FileReader();                                                     
+        reader.onload = (e) => contentTarget.innerHTML = `<img src="${e.target.result}">`; 
+        reader.readAsDataURL(cbPayload[0].getAsFile());     
+                                        
+        }
+        };
+
+
+
+
+        </script>
+    </body>
+</html>

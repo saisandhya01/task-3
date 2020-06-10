@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>All events</title>
+  </head>
+  <style>
+    .modal {
+              display: none; /* Hidden by default */
+              position: fixed; /* Stay in place */
+             z-index: 1; /* Sit on top */
+             padding-top: 100px; /* Location of the box */
+             left: 0;
+             top: 0;
+             width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+             background-color: rgb(0,0,0); /* Fallback color */
+             background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-body div {
+  margin-bottom: 10px;
+}
+/* Modal Content */
+.modal-content {
+  position: relative;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #888;
+  width: 80%;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+  
+  animation-name: animatetop;
+  animation-duration: 0.4s
+}
+
+
+
+@keyframes animatetop {
+  from {top:-300px; opacity:0}
+  to {top:0; opacity:1}
+}
+
+/* The Close Button */
+.close {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-header ,.modal-footer{
+  padding: 2px 16px;
+  background-color: lightseagreen;
+  color:black;
+  
+}
+
+.modal-body {padding: 2px 16px;}
+
+
+
+      
+  </style>
+  <body>
+    <p style="display: none;" id="length"><%= length %></p>
+    <% events.forEach(function(item,index){ %>
+      <% if(item.eventType==='Public' || (item.attendees.includes(host))) { %>
+       <p>Event <%= index+1 %> :</p>
+       <p>Name: <%= item.name %></p>
+       <p>Start Date: <span id='date-<%= index+1 %>'><%=item.startDate %></span></p>
+       <p>End Date: <%=item.endDate %></p>
+       <p>Time :<%=item.time %></p>
+       <p>Created by : <%=item.createdBy %></p>
+       <% if(item.eventType==='Private') { %>
+          <p>attendees: <%=item.attendees %></p>
+          <% } %>
+       <a href="/view/invite/" onclick="location.href=this.href+'<%= index+1 %>';return false;">View Invitation</a>
+       <% if(host !== item.createdBy) { %>
+        <% if(item.acceptedBy.includes(host)) { %>
+            <p><b>You accepted the invitation</b></p>
+            
+       <% } else if(item.rejectedBy.includes(host)) { %>
+            <p><b>You rejected the invitation</b></p>
+            <% } else { %>
+              <div class="deadline" id='deadline-<%= index+1 %>'>
+          <form>
+          <button type="button" value="Accept <%= index+1 %>" name='Accept' id='accept-<%= index+1 %>' onclick="accept('<%= index+1 %>')">Accept</button>
+          <button type="button" value="Reject <%=index+1 %>" name='Reject' id='reject-<%=index+1 %>' onclick="reject('<%= index+1 %>')">Reject</button>
+          </form>
+          
+          <button type="button" onclick="pop('<%= index+1 %>')" id='p-<%= index+1 %>'>Set preferences</button>
+          <div class="modal" id='modal-<%= index+1 %>'>
+            <div class="modal-content">
+              <div class="modal-header">
+                <span class="close" id='close-<%= index+1 %>'>&times;</span>
+                <h2>Set your preferences for the event(Optional):</h2>
+              </div>
+              <div class="modal-body">
+                  <div>
+                    <label for='noAdults-<%= index+1 %>'>No of adults you are bringing in :</label>
+                    <input id='noAdults-<%= index+1 %>' name='noAdults' type="number">
+                  </div>
+                  <div>
+                    <label for='noChildren-<%= index+1 %>'>No of Children you are bringing in :</label>
+                    <input id='noChildren-<%= index+1 %>' name='noChildren' type="number">
+                  </div>
+                  <div>
+                    <label for='food-<%= index+1 %>'>Choose your food preference :</label>
+                    <select name='food' id='food-<%= index+1 %>'>
+                      <option value="Vegetarian">Vegetarian</option>
+                      <option value="Non-Vegetarian">Non-Vegetarian</option>
+                      <option value="Vegan">Vegan</option>
+                    </select>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" onclick="set('<%= index+1 %>','<%= item.createdBy %>')" id='b-<%= index+1 %>'>Add preferences</button>
+              </div>
+            </div>
+          </div>
+          </div>
+          <% } %>
+        <% } %>
+       <% } %>
+       <hr>
+       <% }) %>
+     <script>
+         function accept(id){
+                var body={
+                    accept: document.getElementById('accept'+'-'+id).value
+                }
+                var xhr=new window.XMLHttpRequest();
+                xhr.open('POST','/num',true)
+                xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
+                xhr.send(JSON.stringify(body));
+                document.getElementById('accept'+'-'+id).innerHTML='Accepted';
+                let rejectButton=document.getElementById('reject'+'-'+id);
+                rejectButton.disabled=true
+            }
+            function reject(id){
+                var body={
+                    accept: document.getElementById('reject'+'-'+id).value
+                }
+                var xhr=new window.XMLHttpRequest();
+                xhr.open('POST','/num',true)
+                xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
+                xhr.send(JSON.stringify(body));
+                document.getElementById('reject'+'-'+id).innerHTML='Rejected';
+                let acceptButton=document.getElementById('accept'+'-'+id);
+                acceptButton.disabled=true
+ 
+            }
+            function pop(id){
+              let modal=document.getElementById('modal'+'-'+id)
+               var span = document.getElementById('close'+'-'+id);
+               modal.style.display="block"
+               span.onclick=()=>{
+                   modal.style.display="none";
+               }
+               
+            }
+            function set(id,name){
+              let setP={
+                EventId: id,
+                noAdults: document.getElementById('noAdults'+'-'+id).value,
+                noChildren: document.getElementById('noChildren'+'-'+id).value,
+                food: document.getElementById('food'+'-'+id).value,
+                eventCreatedBy: name
+              }
+              console.log(setP);
+              var xhr=new window.XMLHttpRequest();
+                xhr.open('POST','/preference',true)
+                xhr.setRequestHeader('Content-Type','application/json;charset=UTF-8')
+                xhr.send(JSON.stringify(setP));
+                document.getElementById('b'+'-'+id).innerHTML='Preferences added!'
+                document.getElementById('p'+'-'+id).style.display='none';
+            }
+            let length=document.getElementById('length').innerHTML
+            for(let i=1;i<=length;i++){
+              let deadline=document.getElementById('date'+'-'+i).innerHTML;
+              var today= new Date();
+              var deadlineDate= new Date(deadline);
+              var res=today.getTime()-deadlineDate.getTime();
+              if(res > 0){
+                if(document.getElementById('deadline'+'-'+i)){
+                document.getElementById('deadline'+'-'+i).innerHTML='The deadline for accepting the invitation is over';
+                }
+              }
+            }
+     </script>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home</title>
+    <style>
+      body{
+        background-color: lightseagreen;
+      }
+      a {
+        display: block;
+      }
+      button{
+        font-size: 18px;
+        background-color: lightseagreen;
+        border: 1px none black;
+        cursor: pointer;
+      }
+      #log-out{
+        float: right;
+        position: absolute;
+        top: 5%;
+        right: 5%;
+        }
+      #dashboard{
+        float:right;
+        position:absolute;
+        top: 5%;
+        right: 13%;
+      }
+    </style>
+  </head>
+  <body>
+<h1>Welcome <%= name %></h1>
+<form action="/users/logout?_method=DELETE" method="POST">
+    <button type="submit" id="log-out">Log Out</button>
+  </form>
+  <a href="/event/new"><button>Create an event</button></a>
+  <a href="/view/events/" onclick="location.href=this.href+'<%= username %>';return false;"><button>View all events here</button></a>
+  <a href="/dashboard/" onclick="location.href=this.href+'<%= username %>';return false;"><button id="dashboard">Dashboard</button></a>
+  <a href="/attendance/" onclick="location.href=this.href+'<%= username %>';return false;"><button>Manange attendance for your events</button></a>
+
+</body>
+<script>
+</script>
+</html>

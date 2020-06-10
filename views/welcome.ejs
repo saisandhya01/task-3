@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <title>Welcome page</title>
+        <style>
+            body{
+                background-color: lightgoldenrodyellow;
+            }
+            a {
+               display:block;
+            }
+            button {
+                font-size: 18px;
+                margin-bottom: 10%;
+                background-color: rgb(219,149,174);
+                border-radius: 3px;
+                font-family: Helvetica;
+                border: 1px solid black;
+            }
+            .welcome{
+                position :absolute;
+                left:50%;
+                top:30%;
+                margin-right: -50%;
+                transform: translate(-50%,-50%);
+                border-radius: 2px;
+            }
+            .heading{
+                font-family:Georgia, 'Times New Roman', Times, serif;
+                font-size:23px;
+                margin-left: 5px;
+                margin-right: 5px;
+            }
+            .sign{
+                padding-left: 35%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="welcome">
+        <p class="heading" >Create an account or login</p>
+        <a href="/register" class="sign"><button>Register</button></a>
+        <a href="/login" class="sign"><button>Login</button></a>
+        </div>
+        <script>
+            var socket=io.connect();
+        </script>
+    </body>
+</html>

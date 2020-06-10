@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dashboard</title>
+    </head>
+    <body>
+        <h1>Events you created!</h1>
+        <% if(events[0]===undefined) { %>
+            <p>You have not created any event</p>
+            <% } else { %>
+        <% events.forEach(function(item,index){ %>
+            <p>Name: </p><%= item.name %><br>
+            <p>Start Date:</p><%=item.startDate %><br>
+            <p>End Date:</p><%=item.endDate %><br>
+            <p>Time :</p><%=item.time %><br>
+            <a href="/view/invite/" onclick="location.href=this.href+'<%= index+1 %>';return false;">View Invitation</a>
+        <% }) %>
+        <% } %>
+        <hr>
+        <h1>Invitations you accepted!</h1>
+        <% if(accepts[0]===undefined) { %>
+            <p>You have not accepted any event</p>
+            <% } else { %>
+        <% accepts.forEach(function(item,index){ %>
+            <p>Name: </p><%= item.name %><br>
+            <p>Start Date:</p><%=item.startDate %><br>
+            <p>End Date:</p><%=item.endDate %><br>
+            <p>Time :</p><%=item.time %><br>
+            <p>Created by :</p><%=item.createdBy %><br>
+            <a href="/view/invite/" onclick="location.href=this.href+'<%= index+1 %>';return false;">View Invitation</a>
+        <% }) %>
+        <% } %>
+    </body>
+</html>

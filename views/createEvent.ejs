@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Create an event</title>
+    </head>
+    <body>
+        <h1>Create your event</h1>
+        <form action="/event/new" method="POST">
+            <div>
+            <label for="name">Name of the event:</label>
+            <input id="name" type="text" name="name" required>
+            </div>
+            <div>
+                <label for="start-date">Start-date:</label>
+                <input id="start-date" type="date" name="startDate" required>
+            </div>
+            <div>
+                <label for="end-date">End-date:</label>
+                <input id="end-date" type="date" name="endDate" required>
+            </div>
+            <div>
+                <label for="time">Time:</label>
+                <input id="time" type="time" name="time" required>
+            </div>
+            <div>
+                <span>EVENT TYPE:</span>
+                <label><input type="radio" name="type" value="Private" onclick="check()">Private</label>
+                <label><input type="radio" name="type" value="Public">Public</label>
+            </div>
+            <div id="private">
+                <span>If private,choose your attendees(Do separate the names with a comma,please include your username also ;) ): </span>
+                <textarea id="for-private" name="attendees"></textarea>
+            </div>
+            <div>
+                
+                <button type="submit">Create event</button>
+            </div>
+
+        </form>
+        <script>
+            document.getElementById('private').hidden=true;
+            function check(){
+                document.getElementById('private').hidden=false;
+
+            }
+        </script>
+    </body>
+</html>
