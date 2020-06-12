@@ -1,16 +1,22 @@
 const express=require('express');
 const {google}=require('googleapis');
 const mysql=require('mysql');
-const passport=require('passport');
 const bcrypt=require('bcrypt');
 const flash = require('express-flash');
-const socket=require('socket.io')
 const session = require('express-session')
 const bodyParser=require('body-parser')
-const methodOverride = require('method-override')
 
 const app=express();
 const PORT=process.env.PORT || 7000;
+const TWO_HOURS=1000*60*60*2;
+const {
+  NODE_ENV='development',
+  SESS_NAME='name',
+  SESS_SECRET='secret',
+  SESS_LIFETIME=TWO_HOURS
+} =process.env
+const IN_PROD=NODE_ENV==='production';
+
 //connecting to database
 const db=mysql.createConnection({
     host     : 'localhost',
@@ -27,19 +33,20 @@ const db=mysql.createConnection({
 
 //middlewares
 app.set('view engine','ejs');
-const initialisePassport= require('./authenticate.js');
-initialisePassport(passport);
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(flash())
 app.use(session({
-  secret: 'secret',
-  resave: false,
-  saveUninitialized: false
+  name:SESS_NAME,
+  resave:false,
+  saveUninitialized:false,
+  secret:SESS_SECRET,
+  cookie:{
+      maxAge:SESS_LIFETIME,
+      sameSite: true,
+      secure: IN_PROD
+  }
 }))
-app.use(passport.initialize())
-app.use(passport.session())
-app.use(methodOverride('_method'))
 
 
 const OAuth2Client=require('./index')
@@ -139,10 +146,7 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
       username: req.body.username,
       password: hashedPassword
     }
-    
     const sql="INSERT INTO UserDetails SET ?"
-    
-    
     db.query(sql,user,(err,result)=>{
       if(err) throw err;
       res.redirect('/login')
@@ -158,17 +162,41 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
 app.get('/login',checkNotAuthenticated,(request,response)=>{
     response.render('login');
   })
-app.post('/login',checkNotAuthenticated, passport.authenticate('local', {
-  successRedirect: '/users/home',
-  failureRedirect: '/login',
-  failureFlash: true
-}))
-app.get('/users/home',checkAuthenticated,(request,response)=>{
-  response.render('home',{name: request.user.name,username: request.user.username});
+app.post('/login',checkNotAuthenticated,(req,res)=>{
+  try {
+    const sql="SELECT * FROM UserDetails WHERE username=?"
+        db.query(sql,[req.body.username],async (err,rows)=>{
+            if(err) throw err;
+            const user=rows[0];
+            if(rows.length===0){
+                res.redirect('/login');
+            }
+            if(await bcrypt.compare(req.body.password,user.password)){
+                req.session.user=user;
+                res.redirect('/users/home');
+            }
+            else{
+                res.redirect('/login');       
+               }
+        
+        })
+    
+  } catch (error) {
+    console.log(error);
+    res.redirect('/login');
+  }
 })
-app.delete('/users/logout', (req, res) => {
-  req.logOut()
-  res.redirect('/login')
+app.get('/users/home',checkAuthenticated,(request,response)=>{
+  response.render('home',{name: request.session.user.name,username: request.session.user.username});
+})
+app.post('/logout',checkAuthenticated,(req,res)=>{
+  req.session.destroy(err=>{
+      if(err){
+          return res.redirect('/home');
+      }
+      res.clearCookie(SESS_NAME);
+      res.redirect('/login');
+  })
 })
 app.get('/event/new',checkAuthenticated,(request,response)=>{
   response.render('createEvent');
@@ -180,7 +208,7 @@ app.post('/event/new',checkAuthenticated,(req,res)=>{
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       timeEvent: req.body.time,
-      createdBy: req.user.username,
+      createdBy: req.session.user.username,
       eventType: req.body.type,
       attendees: req.body.attendees
     }
@@ -191,7 +219,7 @@ app.post('/event/new',checkAuthenticated,(req,res)=>{
     db.query(sql,event,(err,result)=>{
       if(err) throw err;
       const sql1="SELECT id FROM Events WHERE name=? AND createdBy=?"
-      db.query(sql1,[req.body.name,req.user.username],(err,result1)=>{
+      db.query(sql1,[req.body.name,req.session.user.username],(err,result1)=>{
         if(err) throw err
         const id=result1[0].id
         res.redirect(`/event/invite/${id}`);
@@ -242,17 +270,17 @@ app.post('/num',checkAuthenticated,(request,response)=>{
       
       if(split[0] !== 'Accept'){
         const sql="UPDATE Events SET rejectedBy=CONCAT(rejectedBy,' ',?) WHERE id=?"
-        db.query(sql,[request.user.username,split[1]],(err,result)=>{
+        db.query(sql,[request.session.user.username,split[1]],(err,result)=>{
           if(err) throw err;
         })
       }
       else{
         const sql="UPDATE Events SET acceptedBy=CONCAT(acceptedBy,' ',?) WHERE id=?"
-        db.query(sql,[request.user.username,split[1]],(err,result)=>{
+        db.query(sql,[request.session.user.username,split[1]],(err,result)=>{
           if(err) throw err;
         })
         const sql1="UPDATE UserDetails SET attending=CONCAT(attending,' ',?) WHERE username=?"
-        db.query(sql1,[split[1],request.user.username],(err,result)=>{
+        db.query(sql1,[split[1],request.session.user.username],(err,result)=>{
           if(err) throw err;
         })
       } 
@@ -268,7 +296,7 @@ app.post('/preference',checkAuthenticated,(request,response)=>{
       EventId: request.body.EventId,
       noAdults: request.body.noAdults,
       noChildren: request.body.noChildren,
-      setBy: request.user.username,
+      setBy: request.session.user.username,
       food: request.body.food,
       eventCreatedBy: request.body.eventCreatedBy
     }
@@ -379,32 +407,27 @@ app.post('/attendance',(request,response)=>{
   })
   response.end('done');
 })
-//authenticating function
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next()
+//authenticating middleware function
+function checkAuthenticated(req,res,next){
+  if(!req.session.user){
+      res.redirect('/login');
   }
-
-  res.redirect('/login')
+  else{
+      next();
+  }
+}
+function checkNotAuthenticated(req,res,next){
+  if(req.session.user){
+      res.redirect('/home');
+  }
+  else{
+      next();
+  }
 }
 
-function checkNotAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return res.redirect('/users/home')
-  }
-  next()
-}
 
 const server=app.listen(PORT,()=>{
     console.log(`Server is listening at ${PORT}`);
 })
-var io=socket(server);
-io.on('connection', function(socket){
-  console.log("Socket established with id: " + socket.id);
- 
-  socket.on('disconnect', function () {
-   console.log("Socket disconnected: " + socket.id);
-  });
- 
- });
+
 
