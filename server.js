@@ -169,6 +169,7 @@ app.post('/login',checkNotAuthenticated,(req,res)=>{
             if(err) throw err;
             const user=rows[0];
             if(rows.length===0){
+                req.flash('error','No user with the given username found')
                 res.redirect('/login');
             }
             if(await bcrypt.compare(req.body.password,user.password)){
@@ -176,6 +177,7 @@ app.post('/login',checkNotAuthenticated,(req,res)=>{
                 res.redirect('/users/home');
             }
             else{
+                req.flash('error','Password incorrect!');
                 res.redirect('/login');       
                }
         
