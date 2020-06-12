@@ -59,7 +59,7 @@ function getEmails(string){                      //to get the emails of the atte
   let finalArray=[];
   for(let i=0;i<arr.length;i++){
     let email={};
-    const sql="SELECT email FROM UserDetails WHERE username=?";
+    const sql="SELECT email FROM userdetails WHERE username=?";
     db.query(sql,[arr[i]],(err,result)=>{
       if(err) return reject(err);
       email['email']=result[0].email;
@@ -74,7 +74,7 @@ function getEmails(string){                      //to get the emails of the atte
   }
   else{
     let finalArray=[];
-    const sql="SELECT email FROM UserDetails";
+    const sql="SELECT email FROM userdetails";
     db.query(sql,(err,result)=>{
       if(err) return reject(err);
       for(let i=0;i<result.length;i++){
@@ -90,7 +90,7 @@ function getEmails(string){                      //to get the emails of the atte
   }
 });
 }
-//inserting events into google calendar
+//adding event to google calendar
 async function eventHandler(event,startDate,endDate){
   const attendees= await getEmails(event.attendees);
   console.log(attendees);
@@ -108,7 +108,7 @@ var eventObject = {
   'recurrence': [
     'RRULE:FREQ=DAILY;COUNT=2'
   ],
-  'attendees': [{'email':'saisandhya187@gmail.com'}],
+  'attendees': [{'email':'saisandhya187@gmail.com'}],  //attendees
   'reminders': {
     'useDefault': false,
     'overrides': [
@@ -146,7 +146,7 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
       username: req.body.username,
       password: hashedPassword
     }
-    const sql="INSERT INTO UserDetails SET ?"
+    const sql="INSERT INTO userdetails SET ?"
     db.query(sql,user,(err,result)=>{
       if(err) throw err;
       res.redirect('/login')
@@ -164,7 +164,7 @@ app.get('/login',checkNotAuthenticated,(request,response)=>{
   })
 app.post('/login',checkNotAuthenticated,(req,res)=>{
   try {
-    const sql="SELECT * FROM UserDetails WHERE username=?"
+    const sql="SELECT * FROM userdetails WHERE username=?"
         db.query(sql,[req.body.username],async (err,rows)=>{
             if(err) throw err;
             const user=rows[0];
@@ -209,7 +209,7 @@ app.post('/event/new',checkAuthenticated,(req,res)=>{
       name: req.body.name,
       startDate: req.body.startDate,
       endDate: req.body.endDate,
-      timeEvent: req.body.time,
+      eventTime: req.body.time,
       createdBy: req.session.user.username,
       eventType: req.body.type,
       attendees: req.body.attendees
@@ -217,10 +217,10 @@ app.post('/event/new',checkAuthenticated,(req,res)=>{
     let startDate=new Date(event.startDate);
     let endDate=new Date(event.endDate);
     eventHandler(event,startDate,endDate);
-    const sql="INSERT INTO Events SET ?"
+    const sql="INSERT INTO events SET ?"
     db.query(sql,event,(err,result)=>{
       if(err) throw err;
-      const sql1="SELECT id FROM Events WHERE name=? AND createdBy=?"
+      const sql1="SELECT id FROM events WHERE name=? AND createdBy=?"
       db.query(sql1,[req.body.name,req.session.user.username],(err,result1)=>{
         if(err) throw err
         const id=result1[0].id
@@ -239,7 +239,7 @@ app.get('/event/invite/:id',checkAuthenticated,(request,response)=>{
 app.post('/event/invite/:id',checkAuthenticated,(req,res)=>{
   try{
     console.log(req.body);
-    const sql="INSERT INTO Invitation SET ?"
+    const sql="INSERT INTO invitations SET ?"
     db.query(sql,req.body,(err,result)=>{
       if(err) throw err;
       res.redirect(`/view/invite/${req.params.id}`);
@@ -250,14 +250,14 @@ app.post('/event/invite/:id',checkAuthenticated,(req,res)=>{
   }
 })
 app.get('/view/invite/:id',checkAuthenticated,(request,response)=>{
-  const sql="SELECT head,body,footer FROM Invitation WHERE id=?"
+  const sql="SELECT head,body,footer FROM invitations WHERE id=?"
   db.query(sql,[request.params.id],(err,result)=>{
     if(err) throw err;
     response.render('viewInvitation',{invitation : result[0]});
   })
 })
 app.get('/view/events/:name',checkAuthenticated,(request,response)=>{
-  const sql="SELECT name,startDate,endDate,timeEvent,createdBy,acceptedBy,rejectedBy,eventType,attendees FROM Events"
+  const sql="SELECT name,startDate,endDate,eventTime,createdBy,acceptedBy,rejectedBy,eventType,attendees FROM events"
   db.query(sql,(err,result)=>{
     if(err) throw err;
     response.render('viewEvents',{events : result,host : request.params.name,length : result.length});
@@ -271,17 +271,17 @@ app.post('/num',checkAuthenticated,(request,response)=>{
       console.log(split,split[1],typeof(split[1]));
       
       if(split[0] !== 'Accept'){
-        const sql="UPDATE Events SET rejectedBy=CONCAT(rejectedBy,' ',?) WHERE id=?"
+        const sql="UPDATE events SET rejectedBy=CONCAT(rejectedBy,' ',?) WHERE id=?"
         db.query(sql,[request.session.user.username,split[1]],(err,result)=>{
           if(err) throw err;
         })
       }
       else{
-        const sql="UPDATE Events SET acceptedBy=CONCAT(acceptedBy,' ',?) WHERE id=?"
+        const sql="UPDATE events SET acceptedBy=CONCAT(acceptedBy,' ',?) WHERE id=?"
         db.query(sql,[request.session.user.username,split[1]],(err,result)=>{
           if(err) throw err;
         })
-        const sql1="UPDATE UserDetails SET attending=CONCAT(attending,' ',?) WHERE username=?"
+        const sql1="UPDATE userdetails SET attending=CONCAT(attending,' ',?) WHERE username=?"
         db.query(sql1,[split[1],request.session.user.username],(err,result)=>{
           if(err) throw err;
         })
@@ -295,7 +295,7 @@ app.post('/num',checkAuthenticated,(request,response)=>{
 app.post('/preference',checkAuthenticated,(request,response)=>{
   try {
     var data={
-      EventId: request.body.EventId,
+      eventId: request.body.EventId,
       noAdults: request.body.noAdults,
       noChildren: request.body.noChildren,
       setBy: request.session.user.username,
@@ -303,7 +303,7 @@ app.post('/preference',checkAuthenticated,(request,response)=>{
       eventCreatedBy: request.body.eventCreatedBy
     }
     console.log(data);
-    const sql="INSERT INTO Preferences SET ?"
+    const sql="INSERT INTO preferences SET ?"
     db.query(sql,data,(err,result)=>{
       if(err) throw err;
     })
@@ -317,7 +317,7 @@ app.get('/dashboard/:name',checkAuthenticated, async (request,response)=>{
   try{
     function executor(){
       return new Promise((resolve,reject)=>{
-        const sql="SELECT * FROM Events WHERE createdBy=?"
+        const sql="SELECT * FROM events WHERE createdBy=?"
         db.query(sql,[request.params.name],(err,result)=>{
           if(err) return reject(err);
           return resolve(result);
@@ -327,13 +327,13 @@ app.get('/dashboard/:name',checkAuthenticated, async (request,response)=>{
     function executor2(){
       return new Promise((resolve,reject)=>{
         let acceptedArray=[];
-        const sql1="SELECT attending FROM UserDetails WHERE username=?"
+        const sql1="SELECT attending FROM userdetails WHERE username=?"
         db.query(sql1,[request.params.name],(err,result1)=>{
           if(err) return reject(err);
           const attending=result1[0].attending
           const split=attending.split(" ");
           for(let i=1;i<=split.length;i++){
-            const sql2="SELECT * FROM Events WHERE id=?"
+            const sql2="SELECT * FROM events WHERE id=?"
             db.query(sql2,[split[i]],(err,result2)=>{
               if(err) return reject(err);
               acceptedArray.push(result2[0]);
@@ -359,7 +359,7 @@ app.get('/attendance/:name',async (request,response)=>{
  try{ 
    function executor3(){
     return new Promise((resolve,reject)=>{
-  const sql="SELECT * FROM Events WHERE createdBy=?"
+  const sql="SELECT * FROM events WHERE createdBy=?"
   db.query(sql,[request.params.name],(err,result)=>{
     if(err) reject(err);
     let alter=result;
@@ -402,7 +402,7 @@ app.post('/attendance',(request,response)=>{
   var body=request.body.present
   console.log(body,request.body.id);
   var str=body.join(",");
-  const sql="UPDATE Events SET attendance=? WHERE id=?";
+  const sql="UPDATE events SET attendance=? WHERE id=?";
   db.query(sql,[str,request.body.id],(err,result)=>{
     if(err) throw err;
     console.log(result);
@@ -426,7 +426,6 @@ function checkNotAuthenticated(req,res,next){
       next();
   }
 }
-
 
 const server=app.listen(PORT,()=>{
     console.log(`Server is listening at ${PORT}`);
