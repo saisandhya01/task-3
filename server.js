@@ -129,7 +129,20 @@ calendar.events.insert({
   console.log('Event created: %s', eventObject.data.htmlLink);
 });
 }
-
+function checkForUsername(username){
+  return new Promise((resolve,reject)=>{
+    const sql="SELECT * FROM userdetails WHERE username=?"
+    db.query(sql,[username],(err,result)=>{
+      if(err) return reject(err);
+      if(result[0]){
+        return resolve(username);
+      }
+      else{
+        return resolve(null);
+      }
+    })
+  })
+}
 //routes
 app.get('/',checkNotAuthenticated,(request,response)=>{
    response.render('welcome');
@@ -139,19 +152,25 @@ app.get('/register',checkNotAuthenticated,(request,response)=>{
 })
 app.post('/register', checkNotAuthenticated, async (req, res) => {
   try{
-    const hashedPassword=await bcrypt.hash(req.body.password,10)
-    const user={
-      name: req.body.name,
-      email: req.body.email,
-      username: req.body.username,
-      password: hashedPassword
+    const exists= await checkForUsername(req.body.username);
+    if(!exists){
+      const hashedPassword=await bcrypt.hash(req.body.password,10)
+      const user={
+        name: req.body.name,
+        email: req.body.email,
+        username: req.body.username,
+        password: hashedPassword
+      }
+      const sql="INSERT INTO userdetails SET ?"
+      db.query(sql,user,(err,result)=>{
+        if(err) throw err;
+        res.redirect('/login')
+      })
     }
-    const sql="INSERT INTO userdetails SET ?"
-    db.query(sql,user,(err,result)=>{
-      if(err) throw err;
-      res.redirect('/login')
-    })
-
+    else{
+      req.flash('exist','Username already exists! Try with a different username')
+      res.redirect('/register');
+    }
   }  catch(e){
     console.log(e);
     res.redirect('/register')
