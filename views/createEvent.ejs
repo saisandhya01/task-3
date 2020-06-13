@@ -2,46 +2,75 @@
 <html>
     <head>
         <title>Create an event</title>
+        <style>
+            body{
+                background-color: lightseagreen;
+            }
+            .create-event{
+                margin: 0 auto;
+                width:400px;
+            }
+            .create-event h1{
+                text-align: center;
+                color: whitesmoke;
+            }
+            .submit button{
+                margin-top: 15px;
+                font-size: 20px;
+                padding: 15px;
+                margin-left: 18px;
+                width: 100%;
+                background-color: gray;
+                border-color: black
+            }
+            .create-event input[type="text"],.create-event input[type="date"],.create-event input[type="time"],#for-private
+            {
+                width:100%;
+                margin-bottom: 14px;
+                padding: 15px;
+                border: 2px solid black;
+            }          
+            #private{
+                margin-top: 3px;
+            }
+        </style>
     </head>
     <body>
+        <div class="create-event">
         <h1>Create your event</h1>
         <form action="/event/new" method="POST">
-            <div>
             <label for="name">Name of the event:</label>
-            <input id="name" type="text" name="name" required>
-            </div>
-            <div>
-                <label for="start-date">Start-date:</label>
-                <input id="start-date" type="date" name="startDate" required>
-            </div>
-            <div>
-                <label for="end-date">End-date:</label>
-                <input id="end-date" type="date" name="endDate" required>
-            </div>
-            <div>
-                <label for="time">Time:</label>
-                <input id="time" type="time" name="time" required>
-            </div>
-            <div>
-                <span>EVENT TYPE:</span>
-                <label><input type="radio" name="type" value="Private" onclick="check()">Private</label>
-                <label><input type="radio" name="type" value="Public">Public</label>
-            </div>
+            <input id="name" type="text" name="name" placeholder="Name" required>
+            <label for="start-date">Start-date:</label>
+            <input id="start-date" type="date" name="startDate" required>
+            
+            <label for="end-date">End-date:</label>
+            <input id="end-date" type="date" name="endDate" required>
+            
+            <label for="time">Time:</label>
+            <input id="time" type="time" name="time" required>
+            <span>Event Type:</span>
+            <label><input type="radio" name="type" value="Private" onclick="display()">Private</label>
+            <label><input type="radio" name="type" value="Public" onclick="notDisplay()">Public</label>
+    
             <div id="private">
-                <span>If private,choose your attendees(Do separate the names with a comma,please include your username also ;) ): </span>
+                <span>If private,choose your attendees (Do separate the names with a comma,please include your username also..): </span>
                 <textarea id="for-private" name="attendees"></textarea>
             </div>
-            <div>
-                
+            <div class="submit">
                 <button type="submit">Create event</button>
             </div>
 
         </form>
+        </div>
         <script>
-            document.getElementById('private').hidden=true;
-            function check(){
-                document.getElementById('private').hidden=false;
+            document.getElementById('private').style.display='none';
+            function display(){
+                document.getElementById('private').style.display='block';
 
+            }
+            function notDisplay(){
+                document.getElementById('private').style.display='none';
             }
         </script>
     </body>

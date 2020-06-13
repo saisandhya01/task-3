@@ -4,72 +4,69 @@
     <title>All events</title>
   </head>
   <style>
+    body{
+      border: 20px solid lightseagreen;
+	    padding: 20px;
+	    max-width: 700px;
+	    width: 80%;
+	    margin: 20px auto;
+
+    }
     .modal {
-              display: none; /* Hidden by default */
-              position: fixed; /* Stay in place */
-             z-index: 1; /* Sit on top */
-             padding-top: 100px; /* Location of the box */
-             left: 0;
-             top: 0;
-             width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-             background-color: rgb(0,0,0); /* Fallback color */
-             background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 100px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
 
-.modal-body div {
-  margin-bottom: 10px;
-}
-/* Modal Content */
-.modal-content {
-  position: relative;
-  background-color: #fefefe;
-  margin: auto;
-  padding: 0;
-  border: 1px solid #888;
-  width: 80%;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-  
-  animation-name: animatetop;
-  animation-duration: 0.4s
-}
+    .modal-body div {
+      margin-bottom: 10px;
+    }
+    /* Modal Content */
+    .modal-content {
+      position: relative;
+      background-color: #fefefe;
+      margin: auto;
+      padding: 0;
+      border: 1px solid #888;
+      width: 80%;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+      animation-name: animatetop;
+      animation-duration: 0.4s
+    }
+    @keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+    /* The Close Button */
+    .close {
+      color: white;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
 
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .modal-header ,.modal-footer{
+      padding: 2px 16px;
+      background-color: lightseagreen;
+      color:black;
+    }
 
-
-@keyframes animatetop {
-  from {top:-300px; opacity:0}
-  to {top:0; opacity:1}
-}
-
-/* The Close Button */
-.close {
-  color: white;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: #000;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.modal-header ,.modal-footer{
-  padding: 2px 16px;
-  background-color: lightseagreen;
-  color:black;
-  
-}
-
-.modal-body {padding: 2px 16px;}
-
-
-
-      
-  </style>
+    .modal-body {padding: 2px 16px;}
+</style>
   <body>
     <p style="display: none;" id="length"><%= length %></p>
     <% events.forEach(function(item,index){ %>
@@ -78,8 +75,8 @@
        <p>Name: <%= item.name %></p>
        <p>Start Date: <span id='date-<%= index+1 %>'><%=item.startDate %></span></p>
        <p>End Date: <%=item.endDate %></p>
-       <p>Time :<%=item.time %></p>
-       <p>Created by : <%=item.createdBy %></p>
+       <p>Time: <%=item.eventTime %></p>
+       <p>Created by: <%=item.createdBy %></p>
        <% if(item.eventType==='Private') { %>
           <p>attendees: <%=item.attendees %></p>
           <% } %>
@@ -192,7 +189,7 @@
               var res=today.getTime()-deadlineDate.getTime();
               if(res > 0){
                 if(document.getElementById('deadline'+'-'+i)){
-                document.getElementById('deadline'+'-'+i).innerHTML='The deadline for accepting the invitation is over';
+                document.getElementById('deadline'+'-'+i).innerHTML='<b>The deadline for accepting the invitation is over</b>';
                 }
               }
             }

@@ -2,19 +2,29 @@
 <html>
     <head>
         <title>Attendance manager</title>
+        <style>
+            body{
+                border: 20px solid lightseagreen;
+	            padding: 20px;
+	            max-width: 700px;
+	            width: 80%;
+	            margin: 20px auto;
+            }
+        </style>
     </head>
     <body>
         <h1>Manage attendance of all your events</h1>
         <% attendance.forEach(function(item,index){ %>
-            <p class="id"><%= item.id %></p>
+            <p class="id" style="display: none;"><%= item.id %></p>
             <p>Name: <%= item.name %></p>
             <p>Start Date: <%=item.startDate %></p>
             <p>End Date: <%=item.endDate %></p>
             <p class="present"><%= item.attendance %></p>
-            <p class="target"><%= item.acceptedBy %></p> 
+            <p class="target" style="display: none;"><%= item.acceptedBy %></p> 
             <a href="/view/invite/" onclick="location.href=this.href+'<%= index+1 %>';return false;">View Invitation</a>
+            <p>Mark a tick if a person is present.</p>
             <div class="attendance">
-
+              
             </div>
             <hr>
         <% }) %>

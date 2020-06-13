@@ -61,7 +61,7 @@
     <body>
         <div class="main">
         <h1 id="special" style="display: none;"><%= id %></h1>
-        <h1 style="color: blue;">Create invitation</h1>
+        <h1 style="color: black;">Create invitation</h1>
         <label for="template">Choose your template : </label>
         <select id="template">
             <option value="Birthday">Birthday</option>
@@ -94,7 +94,7 @@
         let main=document.getElementsByClassName('main');
         let content=document.getElementById('content');
         let template=document.getElementById('template');
-        template.onchange=()=>{
+        template.oninput=()=>{
             if(template.value==='Birthday'){
                 head.innerHTML='You are invited!!'
                 body.innerHTML='Dear friends,<br> To have a guest like you in our party would be a wonderful delight,Please join us for a remarkable celebration of ____ birthday which will be taking place at ____ on _____. Highly awaiting for your presence at the party!'
